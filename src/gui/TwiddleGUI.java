@@ -1,6 +1,5 @@
 package gui;
 
-import java.util.*;
 import game.*;
 
 import javax.swing.*;
@@ -32,6 +31,8 @@ public class TwiddleGUI extends JFrame {
 
         setVisible(true);
     }
+
+
     private void setupGrid() {
         JPanel gridPanel = new JPanel();
         gridPanel.setLayout(new GridLayout(3, 3));
@@ -48,9 +49,10 @@ public class TwiddleGUI extends JFrame {
                 gridPanel.add(label);
             }
         }
-
         add(gridPanel);
     }
+
+
     private void setupButtons() {
 
         JButton b1 = new JButton("Move 1");
@@ -80,7 +82,9 @@ public class TwiddleGUI extends JFrame {
         b4.addActionListener(e -> playerMove(4));
 
         compBtn.addActionListener(e -> {
-            board.executeMove(computer.getMove());
+            int mv = computer.getMove();
+            highlightRotation(mv);   
+            board.executeMove(mv);
             refreshBoard();
             checkSolved();
         });
@@ -90,6 +94,40 @@ public class TwiddleGUI extends JFrame {
             refreshBoard();
         });
     }
+
+    private void playerMove(int move) {
+        highlightRotation(move);     
+        board.executeMove(move);
+        refreshBoard();
+        checkSolved();
+    }
+
+
+    private void highlightRotation(int mvnum) {
+
+        int[][] M = switch (mvnum) {
+            case 1 -> new int[][]{{0,0},{1,0},{1,1},{0,1}};
+            case 2 -> new int[][]{{1,0},{2,0},{2,1},{1,1}};
+            case 3 -> new int[][]{{1,1},{2,1},{2,2},{1,2}};
+            default -> new int[][]{{0,1},{1,1},{1,2},{0,2}};
+        };
+
+        // ✅ Change border color to RED
+        for (int[] c : M) {
+            cells[c[0]][c[1]]
+                .setBorder(BorderFactory.createLineBorder(Color.RED, 3));
+        }
+
+        // ✅ Timer to revert back to BLACK after 250ms
+        new Timer(250, e -> {
+            for (int[] c : M) {
+                cells[c[0]][c[1]]
+                    .setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
+            }
+        }).start();
+    }
+
+
     private void refreshBoard() {
         int[][] g = board.getGrid();
 
@@ -97,16 +135,14 @@ public class TwiddleGUI extends JFrame {
             for (int j = 0; j < 3; j++)
                 cells[i][j].setText(String.valueOf(g[i][j]));
     }
-    private void playerMove(int move) {
-        board.executeMove(move);
-        refreshBoard();
-        checkSolved();
-    }
+
+
     private void checkSolved() {
         if (board.isSolved()) {
             JOptionPane.showMessageDialog(this, "🎉 Puzzle Solved!");
         }
     }
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(TwiddleGUI::new);
     }
