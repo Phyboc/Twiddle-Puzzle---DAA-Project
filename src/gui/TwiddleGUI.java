@@ -51,12 +51,12 @@ public class TwiddleGUI extends JFrame {
 
     private void setupControls() {
 
-        JLabel algoLabel = new JLabel("AI Logic:");
+        JLabel algoLabel = new JLabel("Algorithm:");
         algoLabel.setBounds(40, 340, 80, 20);
         add(algoLabel);
 
-        aStarBtn = new JRadioButton("A* (Fast)", true);
-        bfsBtn = new JRadioButton("BFS (Wide)");
+        aStarBtn = new JRadioButton("A*", true);
+        bfsBtn = new JRadioButton("BFS");
 
         aStarBtn.setBounds(110, 340, 100, 20);
         bfsBtn.setBounds(220, 340, 120, 20);
