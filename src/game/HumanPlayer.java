@@ -1,24 +1,32 @@
 package game;
 import java.util.*;
 
-public class HumanPlayer extends AbstractPlayer {
+public class GameEngine {
+    private final Board board;
+    private final Player human;
+    private final Player computer;
 
-    private final Scanner sc = new Scanner(System.in);
-
-    public HumanPlayer(Board board) {
-        super(board);
+    public GameEngine(Board board, Player human, Player computer) {
+        this.board = board;
+        this.human = human;
+        this.computer = computer;
     }
-    public int getMove() {
-        System.out.print("\nEnter your move number (1-4): ");
-        int mv = sc.nextInt();
 
-        while (mv < 1 || mv > 4) {
-            System.out.print("Invalid move. Enter again (1-4): ");
-            mv = sc.nextInt();
+    public void startGame() {
+        System.out.println("Starting Puzzle...\n");
+
+        board.print();
+
+        while (!board.isSolved()) {
+
+            System.out.println("*** Human's turn ***");
+            board.executeMove(human.getMove());
+            if (board.isSolved()) break;
+
+            System.out.println("*** Computer's turn ***");
+            board.executeMove(computer.getMove());
         }
-        return mv;
-    }
-    public String getName() {
-        return "Human";
+
+        System.out.println("🎉 Puzzle Solved!");
     }
 }
