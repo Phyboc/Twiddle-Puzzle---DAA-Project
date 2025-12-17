@@ -4,45 +4,51 @@ import java.util.*;
 
 public class ComputerPlayer extends AbstractPlayer {
 
-    private boolean useBFS = false; // Default to A*
+    private boolean useBFS = false; // false = A*, true = BFS
 
     public ComputerPlayer(Board board) {
         super(board);
     }
 
-    // --- The Switch ---
     public void setAlgorithm(boolean useBFS) {
         this.useBFS = useBFS;
     }
-
-    public boolean isUsingBFS() {
-        return useBFS;
-    }
-
-    // --- The Brain ---
     public int getMove() {
-        if (useBFS) {
-            return solveWithBFS();
-        } else {
-            return solveWithAStar();
+        return useBFS ? solveWithBFS() : solveWithAStar();
+    }
+    private static class State {
+        int[][] grid;
+        int g, h, f;
+        int move;
+        State parent;
+
+        State(int[][] grid, int g, int move, State parent) {
+            this.grid = grid;
+            this.g = g;
+            this.move = move;
+            this.parent = parent;
+            this.h = heuristic(grid);
+            this.f = g + h;
         }
     }
 
-    
     private int solveWithAStar() {
-        
-        PriorityQueue<State> open = new PriorityQueue<>(Comparator.comparingInt(s -> s.f));
+
+        List<State> open = new ArrayList<>();      
         Map<String, Integer> closed = new HashMap<>();
 
         int[][] start = copy(board.getGrid());
-        State startState = new State(start, 0, -1, null);
-        open.add(startState);
+        open.add(new State(start, 0, -1, null));
+        buildMinHeap(open);
 
         while (!open.isEmpty()) {
-            State cur = open.poll();
+
+            State cur = extractMin(open);          
             String key = encode(cur.grid);
 
-            if (closed.containsKey(key) && closed.get(key) <= cur.g) continue;
+            if (closed.containsKey(key) && closed.get(key) <= cur.g)
+                continue;
+
             closed.put(key, cur.g);
 
             if (isSolved(cur.grid)) {
@@ -51,28 +57,59 @@ public class ComputerPlayer extends AbstractPlayer {
 
             for (int m = 1; m <= 4; m++) {
                 int[][] next = rotate(cur.grid, m);
-                
-                State nextState = new State(next, cur.g + 1, m, cur);
-                open.add(nextState);
+                open.add(new State(next, cur.g + 1, m, cur));
             }
+
+            buildMinHeap(open); 
         }
         return 1;
     }
+    private void buildMinHeap(List<State> heap) {
+        for (int i = heap.size() / 2 - 1; i >= 0; i--)
+            heapify(heap, heap.size(), i);
+    }
 
-    
+    private void heapify(List<State> heap, int n, int i) {
+        int smallest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
+
+        if (left < n && heap.get(left).f < heap.get(smallest).f)
+            smallest = left;
+
+        if (right < n && heap.get(right).f < heap.get(smallest).f)
+            smallest = right;
+
+        if (smallest != i) {
+            Collections.swap(heap, i, smallest);
+            heapify(heap, n, smallest);
+        }
+    }
+
+    private State extractMin(List<State> heap) {
+        State min = heap.get(0);
+        State last = heap.remove(heap.size() - 1);
+
+        if (!heap.isEmpty()) {
+            heap.set(0, last);
+            heapify(heap, heap.size(), 0);
+        }
+        return min;
+    }
+
     private int solveWithBFS() {
-        
+
         Queue<State> queue = new LinkedList<>();
         Set<String> visited = new HashSet<>();
 
         int[][] start = copy(board.getGrid());
-        
-        State startState = new State(start, 0, -1, null); 
-        
+        State startState = new State(start, 0, -1, null);
+
         queue.add(startState);
         visited.add(encode(start));
 
         while (!queue.isEmpty()) {
+
             State cur = queue.poll();
 
             if (isSolved(cur.grid)) {
@@ -85,34 +122,11 @@ public class ComputerPlayer extends AbstractPlayer {
 
                 if (!visited.contains(key)) {
                     visited.add(key);
-                    
                     queue.add(new State(next, 0, m, cur));
                 }
             }
         }
         return 1;
-    }
-
-    
-
-    private static class State {
-        int[][] grid;
-        int g;
-        int h;
-        int f;
-        int move;
-        State parent;
-
-        State(int[][] grid, int g, int move, State parent) {
-            this.grid = grid;
-            this.g = g;
-            this.move = move;
-            this.parent = parent;
-            
-            
-            this.h = heuristic(grid);
-            this.f = g + h;
-        }
     }
 
     private static int heuristic(int[][] g) {
@@ -125,7 +139,6 @@ public class ComputerPlayer extends AbstractPlayer {
     }
 
     private int extractFirstMove(State s) {
-        
         while (s.parent != null && s.parent.parent != null)
             s = s.parent;
         return s.move;
@@ -156,6 +169,7 @@ public class ComputerPlayer extends AbstractPlayer {
         g[M[1][0]][M[1][1]] = v1;
         g[M[2][0]][M[2][1]] = v2;
         g[M[3][0]][M[3][1]] = v3;
+
         return g;
     }
 
@@ -168,11 +182,13 @@ public class ComputerPlayer extends AbstractPlayer {
 
     private String encode(int[][] g) {
         StringBuilder sb = new StringBuilder();
-        for (int[] row : g) for (int x : row) sb.append(x);
+        for (int[] row : g)
+            for (int x : row)
+                sb.append(x);
         return sb.toString();
     }
 
     public String getName() {
-        return useBFS ? "BFS Computer" : "A* Computer";
+        return useBFS ? "BFS Computer" : "A* Computer (Explicit Min-Heap)";
     }
 }
