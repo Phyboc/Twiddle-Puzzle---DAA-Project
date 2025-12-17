@@ -8,15 +8,14 @@ public class TwiddleGUI extends JFrame {
 
     private Board board;
     private JLabel[][] cells = new JLabel[3][3];
-    private Player human;
     private Player computer;
 
     private JRadioButton aStarBtn;
     private JRadioButton bfsBtn;
+    private JLabel moveLabel;
 
     public TwiddleGUI() {
         board = new Board();
-        human = new HumanPlayer(board);
         computer = new ComputerPlayer(board);
 
         setTitle("Twiddle Puzzle");
@@ -27,21 +26,21 @@ public class TwiddleGUI extends JFrame {
         setupGrid();
         setupControls();
         refreshBoard();
+        updateMoveCount();
 
         setVisible(true);
     }
 
     private void setupGrid() {
-        JPanel gridPanel = new JPanel();
-        gridPanel.setLayout(new GridLayout(3, 3));
+        JPanel gridPanel = new JPanel(new GridLayout(3, 3));
         gridPanel.setBounds(60, 30, 300, 300);
 
-        Font f = new Font("Arial", Font.BOLD, 28);
+        Font font = new Font("Arial", Font.BOLD, 28);
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 JLabel label = new JLabel("", SwingConstants.CENTER);
-                label.setFont(f);
+                label.setFont(font);
                 label.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
                 cells[i][j] = label;
                 gridPanel.add(label);
@@ -51,14 +50,14 @@ public class TwiddleGUI extends JFrame {
     }
 
     private void setupControls() {
-        
-        JLabel lblAlgo = new JLabel("Algorithm:");
-        lblAlgo.setBounds(40, 340, 80, 20);
-        add(lblAlgo);
 
-        aStarBtn = new JRadioButton("A*", true);
-        bfsBtn = new JRadioButton("BFS");
-        
+        JLabel algoLabel = new JLabel("AI Logic:");
+        algoLabel.setBounds(40, 340, 80, 20);
+        add(algoLabel);
+
+        aStarBtn = new JRadioButton("A* (Fast)", true);
+        bfsBtn = new JRadioButton("BFS (Wide)");
+
         aStarBtn.setBounds(110, 340, 100, 20);
         bfsBtn.setBounds(220, 340, 120, 20);
 
@@ -69,57 +68,47 @@ public class TwiddleGUI extends JFrame {
         add(aStarBtn);
         add(bfsBtn);
 
-        //Move Buttons
-        int yStart = 380;
+        moveLabel = new JLabel("Moves: 0");
+        moveLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        moveLabel.setBounds(150, 360, 150, 25);
+        add(moveLabel);
+
+        int y = 390;
         JButton b1 = new JButton("1");
         JButton b2 = new JButton("2");
         JButton b3 = new JButton("3");
         JButton b4 = new JButton("4");
 
-        b1.setBounds(40, yStart, 80, 40);
-        b2.setBounds(125, yStart, 80, 40);
-        b3.setBounds(210, yStart, 80, 40);
-        b4.setBounds(295, yStart, 80, 40);
+        b1.setBounds(40, y, 80, 40);
+        b2.setBounds(125, y, 80, 40);
+        b3.setBounds(210, y, 80, 40);
+        b4.setBounds(295, y, 80, 40);
 
-        add(b1); add(b2); add(b3); add(b4);
+        add(b1);
+        add(b2);
+        add(b3);
+        add(b4);
 
-        //Action Buttons
-        JButton compBtn = new JButton("Computer Move");
-        JButton randBtn = new JButton("Randomize");
+        JButton computerBtn = new JButton("Computer Move");
+        JButton randomBtn = new JButton("Randomize");
 
-        compBtn.setBounds(40, yStart + 50, 335, 40);
-        randBtn.setBounds(40, yStart + 100, 335, 40);
+        computerBtn.setBounds(40, y + 50, 335, 40);
+        randomBtn.setBounds(40, y + 100, 335, 40);
 
-        add(compBtn);
-        add(randBtn);
+        add(computerBtn);
+        add(randomBtn);
 
-        //Event Listeners
         b1.addActionListener(e -> playerMove(1));
         b2.addActionListener(e -> playerMove(2));
         b3.addActionListener(e -> playerMove(3));
         b4.addActionListener(e -> playerMove(4));
 
-        randBtn.addActionListener(e -> {
+        computerBtn.addActionListener(e -> computerMove());
+
+        randomBtn.addActionListener(e -> {
             board.randomize();
             refreshBoard();
-        });
-
-        compBtn.addActionListener(e -> {
-            
-            boolean useBFS = bfsBtn.isSelected();
-            
-            if (computer instanceof ComputerPlayer) {
-                ((ComputerPlayer) computer).setAlgorithm(useBFS);
-            }
-
-            
-            int mv = computer.getMove();
-            System.out.println("Computer chose Move " + mv + " using " + (useBFS ? "BFS" : "A*"));
-            
-            highlightRotation(mv);
-            board.executeMove(mv);
-            refreshBoard();
-            checkSolved();
+            updateMoveCount();
         });
     }
 
@@ -127,24 +116,20 @@ public class TwiddleGUI extends JFrame {
         highlightRotation(move);
         board.executeMove(move);
         refreshBoard();
+        updateMoveCount();
         checkSolved();
     }
 
-    private void highlightRotation(int mvnum) {
-        int[][] M = switch (mvnum) {
-            case 1 -> new int[][]{{0,0},{1,0},{1,1},{0,1}};
-            case 2 -> new int[][]{{1,0},{2,0},{2,1},{1,1}};
-            case 3 -> new int[][]{{1,1},{2,1},{2,2},{1,2}};
-            default -> new int[][]{{0,1},{1,1},{1,2},{0,2}};
-        };
+    private void computerMove() {
+        boolean useBFS = bfsBtn.isSelected();
+        ((ComputerPlayer) computer).setAlgorithm(useBFS);
 
-        for (int[] c : M) 
-            cells[c[0]][c[1]].setBorder(BorderFactory.createLineBorder(Color.RED, 3));
-
-        new Timer(250, e -> {
-            for (int[] c : M) 
-                cells[c[0]][c[1]].setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
-        }).start();
+        int move = computer.getMove();
+        highlightRotation(move);
+        board.executeMove(move);
+        refreshBoard();
+        updateMoveCount();
+        checkSolved();
     }
 
     private void refreshBoard() {
@@ -154,10 +139,33 @@ public class TwiddleGUI extends JFrame {
                 cells[i][j].setText(String.valueOf(g[i][j]));
     }
 
+    private void updateMoveCount() {
+        moveLabel.setText("Moves: " + board.getMoves());
+    }
+
     private void checkSolved() {
         if (board.isSolved()) {
-            JOptionPane.showMessageDialog(this, "Puzzle Solved!");
+            JOptionPane.showMessageDialog(this, "🎉 Puzzle Solved!");
         }
+    }
+
+    private void highlightRotation(int mv) {
+        int[][] M = switch (mv) {
+            case 1 -> new int[][]{{0,0},{1,0},{1,1},{0,1}};
+            case 2 -> new int[][]{{1,0},{2,0},{2,1},{1,1}};
+            case 3 -> new int[][]{{1,1},{2,1},{2,2},{1,2}};
+            default -> new int[][]{{0,1},{1,1},{1,2},{0,2}};
+        };
+
+        for (int[] c : M)
+            cells[c[0]][c[1]].setBorder(
+                BorderFactory.createLineBorder(Color.RED, 3));
+
+        new Timer(250, e -> {
+            for (int[] c : M)
+                cells[c[0]][c[1]].setBorder(
+                    BorderFactory.createLineBorder(Color.BLACK, 2));
+        }).start();
     }
 
     public static void main(String[] args) {
