@@ -9,7 +9,7 @@ public class TwiddleGUI extends JFrame {
     private Board board;
     private JLabel[][] cells = new JLabel[3][3];
     private Player human;
-    private Player computer; // Just one computer player now!
+    private Player computer;
 
     private JRadioButton aStarBtn;
     private JRadioButton bfsBtn;
@@ -17,7 +17,7 @@ public class TwiddleGUI extends JFrame {
     public TwiddleGUI() {
         board = new Board();
         human = new HumanPlayer(board);
-        computer = new ComputerPlayer(board); // Initialize once
+        computer = new ComputerPlayer(board);
 
         setTitle("Twiddle Puzzle");
         setSize(420, 560);
@@ -52,13 +52,12 @@ public class TwiddleGUI extends JFrame {
 
     private void setupControls() {
         
-        // --- Algorithm Selection Radio Buttons ---
-        JLabel lblAlgo = new JLabel("AI Logic:");
+        JLabel lblAlgo = new JLabel("Algorithm:");
         lblAlgo.setBounds(40, 340, 80, 20);
         add(lblAlgo);
 
-        aStarBtn = new JRadioButton("A* (Fast)", true);
-        bfsBtn = new JRadioButton("BFS (Wide)");
+        aStarBtn = new JRadioButton("A*", true);
+        bfsBtn = new JRadioButton("BFS");
         
         aStarBtn.setBounds(110, 340, 100, 20);
         bfsBtn.setBounds(220, 340, 120, 20);
@@ -70,7 +69,7 @@ public class TwiddleGUI extends JFrame {
         add(aStarBtn);
         add(bfsBtn);
 
-        // --- Move Buttons ---
+        //Move Buttons
         int yStart = 380;
         JButton b1 = new JButton("1");
         JButton b2 = new JButton("2");
@@ -84,7 +83,7 @@ public class TwiddleGUI extends JFrame {
 
         add(b1); add(b2); add(b3); add(b4);
 
-        // --- Action Buttons ---
+        //Action Buttons
         JButton compBtn = new JButton("Computer Move");
         JButton randBtn = new JButton("Randomize");
 
@@ -94,7 +93,7 @@ public class TwiddleGUI extends JFrame {
         add(compBtn);
         add(randBtn);
 
-        // --- Event Listeners ---
+        //Event Listeners
         b1.addActionListener(e -> playerMove(1));
         b2.addActionListener(e -> playerMove(2));
         b3.addActionListener(e -> playerMove(3));
@@ -106,15 +105,14 @@ public class TwiddleGUI extends JFrame {
         });
 
         compBtn.addActionListener(e -> {
-            // 1. Check which radio button is selected
+            
             boolean useBFS = bfsBtn.isSelected();
             
-            // 2. Tell the computer which brain to use
             if (computer instanceof ComputerPlayer) {
                 ((ComputerPlayer) computer).setAlgorithm(useBFS);
             }
 
-            // 3. Get and execute the move
+            
             int mv = computer.getMove();
             System.out.println("Computer chose Move " + mv + " using " + (useBFS ? "BFS" : "A*"));
             
@@ -158,7 +156,7 @@ public class TwiddleGUI extends JFrame {
 
     private void checkSolved() {
         if (board.isSolved()) {
-            JOptionPane.showMessageDialog(this, "🎉 Puzzle Solved!");
+            JOptionPane.showMessageDialog(this, "Puzzle Solved!");
         }
     }
 
