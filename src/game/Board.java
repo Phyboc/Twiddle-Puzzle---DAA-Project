@@ -13,6 +13,7 @@ public class Board {
     };
 
     public Board() {
+    	moves = 0;
         generateRandomBoard();
     }
 
@@ -69,11 +70,15 @@ public class Board {
         System.out.println("Moves: " + moves + "\n");
     }
     public void randomize() {
+    	moves = 0;
         generateRandomBoard();
         print();
     }
     public int[][] getGrid() {
         return grid;
+    }
+    public int getMoves() {
+    	return moves;
     }
 
 }
