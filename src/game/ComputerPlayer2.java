@@ -24,7 +24,6 @@ public class ComputerPlayer2 extends AbstractPlayer {
     //these are to override the methods in abstract player or more like player interface
     @Override
     public int getMove() {
-    	bestH.clear();
         return solvewithdc();
     }
     @Override
@@ -32,6 +31,7 @@ public class ComputerPlayer2 extends AbstractPlayer {
         return "Divide and Conquer using Greedy Heuristic";
     }
 
+    
     //this is to store the direction sum and the element number
     // static class Element{
     //     int num;
@@ -60,25 +60,26 @@ public class ComputerPlayer2 extends AbstractPlayer {
         }
     }
 
-    private int solvewithdc(){
-        bestH.clear();   
+    private int solvewithdc() {
+        bestH.clear();
         int[][] grid = board.getGrid();
-        return rotation(grid, 0, grid.length-1, 0, grid[0].length-1).moveno;
-        
+        Rotator r = rotation(grid, 0, grid.length - 1, 0, grid[0].length - 1);
+        if (r == null) return 1; // safe default move
+        return r.moveno;
     }
+
 
     //this method recursively divides the nxn matrix till it is 2x2 matrix, initializes the rotator class 
     // and also calculates heuristics and returns the rotator class var that has max heuristics.    
     private Rotator rotation(int[][] matrix, int s1, int s2, int e1, int e2){
         if (s1 >= s2 || e1 >= e2) return null;
         if (((s2 - s1) == 1) && ((e2 - e1) == 1)) {
-            String key = encode(matrix);
             int[][] next = rotate(matrix, s1, s2, e1, e2);
             int denom = h2(next, s1,s2,e1,e2);
-            int h = (denom == 0) ? Integer.MAX_VALUE : h1(next, s1,s2,e1,e2) / denom;
+            int h = h1(next, s1,s2,e1,e2) + denom;
             //dominance pruning is done here
-            key = encode(next);
-            if (bestH.containsKey(key) && bestH.get(key) >= h)
+            String key = encode(next);
+            if (bestH.containsKey(key) && bestH.get(key) <= h)
                 return null;
 
             bestH.put(key, h);
@@ -93,9 +94,11 @@ public class ComputerPlayer2 extends AbstractPlayer {
         children.add(rotation(matrix, s1, s2-1, e1+1, e2));
         children.add(rotation(matrix, s1+1, s2, e1+1, e2));
         children.removeIf(Objects::isNull);
-        children.sort((a, b) -> b.h - a.h);
+        children.sort((a, b) -> a.h - b.h);
         return children.isEmpty() ? null : children.get(0);
     }
+    
+    
 
     //this method is to calculate the move number based on the rows and columns that are rotating
     private int getMoveno(int[][] matrix, int s1, int s2, int e1, int e2){
