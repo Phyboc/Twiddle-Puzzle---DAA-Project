@@ -3,65 +3,88 @@ package game;
 import java.util.*;
 
 public class Board {
+    private final int N;
     private int[][] grid;
     private int moves = 0;
+    private final int[][] TARGET;
 
-    private static final int[][] TARGET = {
-            {1, 2, 3},
-            {4, 5, 6},
-            {7, 8, 9}
-    };
-
-    public Board() {
-    	moves = 0;
+    public Board(int n) {
+        this.N = n;
+        this.TARGET = buildTarget(n);
         generateRandomBoard();
     }
 
-    private void generateRandomBoard() {
-        List<Integer> numbers = new ArrayList<>();
-        for (int i = 1; i <= 9; i++) numbers.add(i);
-
-        Collections.shuffle(numbers);
-
-        grid = new int[3][3];
-        int index = 0;
-
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++)
-                grid[i][j] = numbers.get(index++);
+    private int[][] buildTarget(int n) {
+        int[][] t = new int[n][n];
+        int v = 1;
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                t[i][j] = v++;
+        return t;
     }
+
+    private void generateRandomBoard() {
+        List<Integer> nums = new ArrayList<>();
+        for (int i = 1; i <= N * N; i++) nums.add(i);
+        Collections.shuffle(nums);
+
+        grid = new int[N][N];
+        int idx = 0;
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+                grid[i][j] = nums.get(idx++);
+    }
+
+    public void executeMove(int move) {
+        int r = (move - 1) / (N - 1);
+        int c = (move - 1) % (N - 1);
+
+        rotate2x2(r, c);
+        moves++;
+    }
+
+    private void rotate2x2(int r, int c) {
+        int tmp = grid[r][c];
+        grid[r][c] = grid[r][c + 1];
+        grid[r][c + 1] = grid[r + 1][c + 1];
+        grid[r + 1][c + 1] = grid[r + 1][c];
+        grid[r + 1][c] = tmp;
+    }
+    
+    public void printBoard() {
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid[0].length; j++) {
+                System.out.printf("%4d", grid[i][j]);
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
 
     public boolean isSolved() {
         return Arrays.deepEquals(grid, TARGET);
     }
 
-    public void executeMove(int mvnum) {
-        int[][] M = switch (mvnum) {
-            case 1 -> new int[][]{{0,0}, {1,0}, {1,1}, {0,1}};
-            case 2 -> new int[][]{{1,0}, {2,0}, {2,1}, {1,1}};
-            case 3 -> new int[][]{{1,1}, {2,1}, {2,2}, {1,2}};
-            default -> new int[][]{{0,1}, {1,1}, {1,2}, {0,2}};
-        };
-
-        rotate(M);
-        moves++;
-        print();
+    public void randomize() {
+        moves = 0;
+        generateRandomBoard();
     }
 
-    private void rotate(int[][] c) {
-        int a1 = c[0][0], b1 = c[0][1];
-        int a2 = c[1][0], b2 = c[1][1];
-        int a3 = c[2][0], b3 = c[2][1];
-        int a4 = c[3][0], b4 = c[3][1];
+    public int[][] getGrid() {
+        return grid;
+    }
 
-        int v1 = grid[a1][b1];
-        int v2 = grid[a2][b2];
-        int v3 = grid[a3][b3];
+    public int getMoves() {
+        return moves;
+    }
 
-        grid[a1][b1] = grid[a4][b4];
-        grid[a2][b2] = v1;
-        grid[a3][b3] = v2;
-        grid[a4][b4] = v3;
+    public int size() {
+        return N;
+    }
+
+    public int totalMoves() {
+        return (N - 1) * (N - 1);
     }
 
     public void print() {
@@ -69,16 +92,4 @@ public class Board {
             System.out.println(Arrays.toString(row));
         System.out.println("Moves: " + moves + "\n");
     }
-    public void randomize() {
-    	moves = 0;
-        generateRandomBoard();
-        print();
-    }
-    public int[][] getGrid() {
-        return grid;
-    }
-    public int getMoves() {
-    	return moves;
-    }
-
 }

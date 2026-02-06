@@ -1,7 +1,6 @@
 package game;
-import java.util.*;
-
 public class GameEngine {
+
     private final Board board;
     private final Player human;
     private final Player computer;
@@ -13,18 +12,24 @@ public class GameEngine {
     }
 
     public void startGame() {
-        System.out.println("Starting Puzzle...\n");
-
-        board.print();
+        System.out.println("Initial Board:");
+        board.printBoard();
 
         while (!board.isSolved()) {
 
-            System.out.println("*** Human's turn ***");
-            board.executeMove(human.getMove());
+            // Human move
+            int hMove = human.getMove();
+            board.executeMove(hMove);
+            System.out.println("After Human move (" + hMove + "):");
+            board.printBoard();
+
             if (board.isSolved()) break;
 
-            System.out.println("*** Computer's turn ***");
-            board.executeMove(computer.getMove());
+            // Computer move
+            int cMove = computer.getMove();
+            board.executeMove(cMove);
+            System.out.println("After Computer move (" + cMove + "):");
+            board.printBoard();
         }
 
         System.out.println("🎉 Puzzle Solved!");

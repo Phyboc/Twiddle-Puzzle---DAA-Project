@@ -24,6 +24,7 @@ public class ComputerPlayer2 extends AbstractPlayer {
     //these are to override the methods in abstract player or more like player interface
     @Override
     public int getMove() {
+    	bestH.clear();
         return solvewithdc();
     }
     @Override
@@ -99,17 +100,16 @@ public class ComputerPlayer2 extends AbstractPlayer {
     //this method is to calculate the move number based on the rows and columns that are rotating
     private int getMoveno(int[][] matrix, int s1, int s2, int e1, int e2){
         int cols = matrix[0].length;
-        int moveNo = s1 * cols + e1 + 1; 
+        int moveNo = s1 * (cols-1) + e1 + 1; 
         return moveNo;
     }
 
     //this method is to calculate the heuristic 1 which is the direction value sum
     private int h1(int[][] matrix, int s1, int s2, int e1, int e2){
-        int[][] copy = rotate(matrix, s1, s2, e1, e2);
         int sum = 0;
         for (int i = s1; i<=s2; i++){
             for (int j = e1; j<=e2; j++){
-                sum += Math.abs(copy[i][j] - finalgrid[i][j]);
+                sum += Math.abs(matrix[i][j] - finalgrid[i][j]);
             }
         }
         return sum;
@@ -118,12 +118,11 @@ public class ComputerPlayer2 extends AbstractPlayer {
     //this method is to calculate the heuristic 2 which is the 
     // number of misplaced elements in the in full matrix
     private int h2(int[][] matrix, int s1, int s2, int e1, int e2){
-        int[][] copy = rotate(matrix, s1, s2, e1, e2);
         int count = 0;
         int val = 1;
         for (int i = 0; i<=matrix.length-1; i++){
             for (int j = 0; j<=matrix[0].length-1; j++){
-                if (copy[i][j] != val++) count++;
+                if (matrix[i][j] != val++) count++;
             }
         }
         return count;
