@@ -61,7 +61,6 @@ public class ComputerPlayer2 extends AbstractPlayer {
     }
 
     private int solvewithdc() {
-        bestH.clear();
         int[][] grid = board.getGrid();
         Rotator r = rotation(grid, 0, grid.length - 1, 0, grid[0].length - 1);
         if (r == null) return 1; // safe default move
@@ -79,7 +78,7 @@ public class ComputerPlayer2 extends AbstractPlayer {
             int h = h1(next, s1,s2,e1,e2) + denom;
             //dominance pruning is done here
             String key = encode(next);
-            if (bestH.containsKey(key) && bestH.get(key) <= h)
+            if (bestH.containsKey(key) || (bestH.containsKey(key) && bestH.get(key) <= h))
                 return null;
 
             bestH.put(key, h);
